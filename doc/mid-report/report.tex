@@ -1,0 +1,131 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[latin1]{inputenc}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[babel=true]{microtype}
+\usepackage[portuguese]{babel}
+\usepackage[pdftex]{hyperref}
+\usepackage{graphicx}
+\usepackage{eurosym}
+\usepackage{scrextend}
+\usepackage{hyphenat}
+
+\begin{document}
+
+\begin{titlepage}
+\title{\huge \textbf{Pesquisa aplicada à determinação de trajetos em viagens\\[1cm] \Large Relatório intercalar\\[1cm] \includegraphics{logo.png}\\[1cm] \large Inteligência Artificial\\[0.25cm] \small $3^o$ ano\\[0.05cm]Mestrado Integrado em Engenharia Informática e Computação\\[1.7cm]}\normalsize Turma 5 - Grupo A1\_2}
+
+\author{José Peixoto \\Pedro Moura \and 200603103\\201306843 \and ei12134@fe.up.pt \\ up201306843@fe.up.pt\\[1cm]}
+\maketitle
+\thispagestyle{empty} % titlepage must not be numbered
+\end{titlepage}
+
+\newpage
+\tableofcontents
+\newpage
+
+\begin{abstract}
+No âmbito da unidade curricular de Inteligência Artificial, foi-nos proposta a elaboração de um relatório intercalar que descrevesse as decisões e progressos já efectuados no projecto da pesquisa aplicada à determinação de trajetos em viagens.
+\end{abstract}
+
+\section{Objetivo}
+\iffalse Descrição sumária do objetivo do trabalho \fi
+No tema da ``Pesquisa aplicada à determinação de trajetos em viagens'' pretende-se determinar o melhor percurso a realizar de automóvel, numa viagem de grande distância. Pressupõe-se uma aplicação de algoritmos de pesquisa informada estudados nas aulas, que permitam encontrar a solução óptima deste problema.
+
+\section{Descrição}
+\subsection{Especificação}
+\iffalse Descrição pormenorizada do trabalho.
+Indique as partes em que tenciona dividir o trabalho e as fases em que tenciona abordar cada parte.
+Caso já tenha pensado, indique nesta secção mais pormenores sobre o trabalho incluindo módulos da arquitetura que vai propor, esquemas de Representação de Conhecimento que vai usar, processos de raciocínio que tenciona utilizar, metodologias que vai propor/usar, etc.\fi
+
+\subsubsection{Principais conceitos}
+Neste problema, os principais conceitos são o automóvel, o local de partida, o local de destino, estações de serviço, hotéis, pontos com interesse turístico e o trajeto ou estrada que faz a ligação entre os locais.
+
+\begin{labeling}{alligator}
+\item [\textbf{Automóvel}] é o meio de transporte usado pela família do Sr. X e permitirá a deslocação entre o local de partida e o local de destino, através de estradas, podendo passar por estações serviço, pontos com interesse para visita e hotéis.
+\item [\textbf{Local de partida}] é a localização física da qual a família do Sr. X iniciará a sua viagem de férias.
+\item [\textbf{Local de destino}] é a localização final à qual a família do Sr. X pertende chegar na sua viagem de férias.
+\item [\textbf{Estações de serviço}] são locais que permitem o abastecimento de combustível ao automóvel.
+\item [\textbf{Hotéis}] são locais que permitem a pernoita de toda a família do Sr. X.
+\item [\textbf{Pontos com interesse turístico}] são os locais com interesse turístico, e de passagem obrigatória pela família do Sr. X durante as férias.
+\item [\textbf{Estradas}] são todas as vias de comunicação que permitem que o automóvel se desloque entre os pontos atrás referidos. No caso de ser uma autoestrada, considera-se que a via tem custos associados.
+\end{labeling}
+
+\subsubsection{Descrição do problema}
+Com os conceitos atrás descritos, torna-se simples a compreensão de uma descrição geral do problema: Um automóvel pretende deslocar-se de um ponto A para um ponto B, sendo necessário descobrir o caminho mais curto e fisicamente possível (ver sub-secção seguinte), minimizando os custos associados.
+
+\subsubsection{Restrições do problema}
+Para além de determinar a melhor solução, ou seja, o melhor trajeto a realizar pelo automóvel, é necessário ter em conta certas restrições que alteram a busca da solução e simulam de forma mais realista o problema:
+
+\begin{labeling}{alligator}
+\item [\textbf{Tempo máximo de condução:}] a distância pode não ser percorrível em 24 horas e muito menos nas 8 horas que se definiram como tempo máximo de viagem por dia.
+\item [\textbf{Controlo da quantidade de combustível:}] a quantidade de combustível tem de ser mantida por forma a permitir o movimento do automóvel sem que este se esgote antes de alcançar uma estação de serviço ou o ponto de destino, caso já tenha percorrido todos os pontos com interesse turístico.
+\item [\textbf{Passagem pelos pontos com interesse turístico:}] outra restrição na escolha do itinerário final é a passagem obrigatória pelos pontos com interesse turístico.
+\item [\textbf{Custos associados:}] minimização dos custos necessários no itinerário solução. Preferência por estradas sem custos adicionais, e minimização de pernoitas, ou utilização de hotéis mais baratos.
+\end{labeling}
+
+\subsubsection{Representação do problema}
+Para representar o mapa é usado um grafo não dirigido com uma lista de arestas adjacentes em cada nó. Para simplificação na criação de dados de entrada, cada nó representa uma cidade que pode ou não ser um local obrigatório de passagem e contém ou não estações de serviço e/ou hotéis. As coordenadas geográficas de cada nó são representadas em graus decimais. As arestas do grafo guardam a distância, o tempo médio necessário para o percorrer e o seu preço ( 0 \euro \ quando sem custos e $>$ 0 \euro \ , caso se trate de uma via de comunicação com custos de passagem).
+
+Na representação do carro, para além da informação relativa à capacidade do tanque de combustível e autonomia média, guarda-se o plano de viagem pretendido, com os nós de passagem obrigatória, sob a forma de uma lista ligada em que o primeiro elemento é o ponto de partida, e o último o ponto de chegada.
+
+\subsubsection{Solução do problema}
+Na determinação da melhor solução para o problema, pretende-se aplicar o algoritmo $A^*$ a um grafo que representa um mapa com alguns dos itinerários possíveis desde o local de partida até ao local de destino. Este algoritmo usa um método de ``o melhor primeiro'', fazendo uma avaliação $f(n)$ dos nós, combinando o custo necessário para se atingir o nó $g(n)$ e o custo necessário para se alcançar o objetivo desse nó $h(n)$:
+
+\begin{equation}
+f(n) = g(n) + h(n)
+\end{equation}
+
+No cálculo da função $g(n)$, pensa-se contabilizar a distância em quilómetros ($km$) já percorridos até ao nó em questão e o dinheiro gasto em euros (\euro) em combustível, alojamento e portagens.
+
+Para garantir a admissibilidade da função heurística $h(n)$, pensa-se calcular a distância em linha reta entre as coordenadas geográficas entre o nó em questão e o local de destino, apenas no caso em que todos os locais com interesse turístico ($POI$) já tenham sido visitados.
+Quando ainda existam $POI$ por visitar, é calculada a distância de Manhattan para o caminho entre o ponto atual, passando por todos os pontos ainda por visitar até ao local de destino, adicionando também uma estimativa do custo em combustível, alojamento e portagens necessários para esse trajeto.
+
+\subsubsection{Fases do trabalho}
+\begin{enumerate}
+\item Compreensão do problema.
+\item Análise e escolha das metodologias de resolução do problema, recorrendo a algoritmos de pesquisa informada de soluções.
+\item Criação/geração e representação dos dados de entrada.
+\item Aplicação de algoritmos ($A^*$ e/ou $IDA^*$).
+\item Validação dos resultados.
+\item Visualização da solução de uma forma amigável, se possível, usando Google Maps JavaScript API e/ou GraphStream.
+\end{enumerate}
+
+\subsection{Trabalho efectuado}
+\iffalse Descrição do trabalho que já realizou.\fi
+Geraram-se nós e arestas a partir de coordenadas obtidas pelo Google Maps, necessários na criação de um mapa com várias ligações (estradas) possíveis entre cada par de nós. Pela morosidade de todo este processo, optou-se nesta primeira entrega pela representação de hotéis, estações de serviço e pontos com interesse turístico de forma agrupada nos nós das cidades.
+
+Calculou-se a melhor solução para o problema, apenas contabilizando a distância como fator de cálculo tanto para a função de custo até ao nó $g(n)$ como para a função heurística $h(n)$. É feita uma representação gráfica básica do mapa inicial e da solução gerada pelo programa.
+
+\subsection{Resultados esperados e forma de avaliação}
+\iffalse Enumere testes a definir para validar o resultado do trabalho.\fi
+Para além de testes unitários \texttt{JUnit} para funções críticas usadas pelo algoritmo, como por exemplo no cálculo da distância de Manhattan entre dois pontos do mapa, é feita a comparação do resultado do programa com uma resolução manual do problema, uma vez que nesta fase inicial, ainda é de dimensão reduzida. Para a entrega final, pensa-se ter todos os componentes importantes acrescentando também ao algoritmo principal testes unitários \texttt{JUnit}.
+
+\section{Conclusões}
+\iffalse Escreva aqui as conclusões que achar devidas.\fi
+É oportuna a exploração prática de alguns dos algoritmos de pesquisa de soluções leccionados durante as aulas, no entanto, devido à sobrecarga de trabalho de outras unidades curriculares e à dificuldade que sentimos, sobretudo ao preparar os dados de input com a escala e formato pretendido, consideramos insuficiente o tempo útil disponível para o trabalho.
+
+\section{Recursos}
+\iffalse Indique os recursos usados na realização do trabalho: bibliografia e software.\fi
+
+\begin{thebibliography}{9}
+
+\bibitem{lamport93}
+  Stuart Russell, Peter Norvig
+  \emph{Artifical Intelligence A Modern Approach},
+  Pearson Education
+  3rd edition,
+  2010.
+
+\bibitem{lamport93}
+  \emph{Google Maps},
+  2016
+
+\bibitem{lamport93}
+  http://graphstream-project.org/
+  \emph{GraphStream},
+  2015
+
+\end{thebibliography}
+
+\end{document}

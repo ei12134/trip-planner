@@ -1,0 +1,224 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[latin1]{inputenc}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[babel=true]{microtype}
+\usepackage[portuguese]{babel}
+\usepackage[pdftex]{hyperref}
+\usepackage{graphicx}
+\usepackage{eurosym}
+\usepackage{scrextend}
+\usepackage{hyphenat}
+\usepackage{amsmath}
+\usepackage{float}
+
+\begin{document}
+
+\begin{titlepage}
+\title{\huge \textbf{Pesquisa aplicada à determinação de trajetos em viagens\\[1cm] \Large Relatório final\\[1cm] \includegraphics{logo.png}\\[1cm] \large Inteligência Artificial\\[0.25cm] \small $3^o$ ano\\[0.05cm]Mestrado Integrado em Engenharia Informática e Computação\\[1.7cm]}\normalsize Turma 5 - Grupo A1\_2}
+
+\author{José Peixoto \\Pedro Moura \and 200603103\\201306843 \and ei12134@fe.up.pt \\ up201306843@fe.up.pt\\[1cm]}
+\maketitle
+\thispagestyle{empty} % titlepage must not be numbered
+\end{titlepage}
+
+\newpage
+\tableofcontents
+\newpage
+
+\begin{abstract}
+No âmbito da unidade curricular de Inteligência Artificial, foi-nos proposta a elaboração de um relatório final que documentasse todo o trabalho realizado no projeto da pesquisa aplicada à determinação de trajetos em viagens.
+\end{abstract}
+
+\section{Objetivo}
+\iffalse Descrição sumária do tema e objectivo do trabalho \fi
+No tema da ``Pesquisa aplicada à determinação de trajetos em viagens'' pretende-se determinar o melhor percurso a realizar de automóvel, numa viagem de grande distância. Pressupõe-se uma aplicação de algoritmos de pesquisa informada, estudados nas aulas, que permitam encontrar a solução ótima deste problema.
+
+\section{Especificação}
+\iffalse Análise detalhada do tema, ilustração de cenários, explicação de datasets, ...
+Abordagem: técnicas, algoritmos e sua breve explicação, esquemas de representação do conhecimento, métricas, heurísticas, gramáticas, arquitecturas, ...\fi
+
+\subsection{Principais conceitos}
+Neste problema, os principais conceitos são o automóvel, o local de partida, o local de destino, estações de serviço, hotéis, pontos com interesse turístico e o trajeto ou estrada que faz a ligação entre os locais.
+
+\begin{labeling}{alligator}
+\item [\textbf{Automóvel}] é o meio de transporte usado pela família do Sr. X e permitirá a deslocação entre o local de partida e o local de destino, através de estradas, podendo passar por estações serviço, pontos com interesse para visita e hotéis.
+\item [\textbf{Local de partida}] é a localização física onde a família do Sr. X iniciará a sua viagem de férias.
+\item [\textbf{Local de destino}] é a localização final aonde a família do Sr. X pretende chegar na sua viagem de férias.
+\item [\textbf{Estações de serviço}] são locais que permitem o abastecimento de combustível ao automóvel.
+\item [\textbf{Hotéis}] são locais que permitem a pernoita de toda a família do Sr. X.
+\item [\textbf{Pontos com interesse turístico}] são os locais com interesse turístico, e de possível passagem obrigatória pela família do Sr. X durante as férias.
+\item [\textbf{Estradas}] são todas as vias de comunicação que permitem que o automóvel se desloque entre os pontos atrás referidos. No caso de ser uma autoestrada, considera-se que a via tem custos associados.
+\end{labeling}
+
+\subsection{Descrição do problema}
+Com os conceitos atrás descritos, torna-se simples a compreensão de uma descrição geral do problema: Um automóvel pretende deslocar-se de um ponto A para um ponto B, sendo necessário descobrir o caminho mais curto e fisicamente possível (ver sub-secção seguinte), minimizando os custos associados.
+
+\subsection{Restrições do problema}
+Para além de determinar a melhor solução, ou seja, o melhor trajeto a realizar pelo automóvel, é necessário ter em conta certas restrições que alteram a busca da solução e simulam, de forma mais realista, o problema:
+
+\begin{labeling}{alligator}
+\item [\textbf{Tempo máximo de condução:}] a distância pode não ser percorrível em 24 horas e muito menos nas 8 horas que se definiram como tempo máximo de viagem por dia.
+\item [\textbf{Controlo da quantidade de combustível:}] a quantidade de combustível tem de ser mantida por forma a permitir o movimento do automóvel sem que este se esgote antes de alcançar uma estação de serviço ou o ponto de destino, caso já tenha percorrido todos os pontos com interesse turístico.
+\item [\textbf{Passagem pelos pontos com interesse turístico:}] outra restrição na escolha do itinerário final é a passagem obrigatória pelos pontos com interesse turístico.
+\item [\textbf{Custos associados:}] minimização dos custos necessários no itinerário solução. Preferência por estradas sem custos adicionais, e minimização de pernoitas, ou utilização de hotéis mais baratos.
+\end{labeling}
+
+\subsection{Representação do problema}
+Para representar o mapa, é usado um grafo não dirigido com uma lista de arestas adjacentes em cada nó. Para simplificação na criação de dados de entrada, cada nó representa uma cidade que pode ou não ser um local obrigatório de passagem e contém estações de serviço e hotéis. As coordenadas geográficas de cada nó são representadas em graus decimais. As arestas do grafo guardam a distância, o tempo médio necessário para o percorrer e o seu preço (0 \euro \ quando sem custos e $>$ 0 \euro \ , caso se trate de uma via de comunicação com custos de passagem).
+
+Na representação do carro, para além da informação relativa à capacidade do tanque de combustível e autonomia média, guarda-se o plano de viagem pretendido, com os nós de passagem obrigatória, sob a forma de uma lista ligada em que o primeiro elemento é o ponto de partida, e o último o ponto de chegada.
+
+\subsection{Solução do problema}
+Na determinação da melhor solução para o problema, é aplicado o algoritmo $A^*$ a um grafo que representa um mapa com alguns dos itinerários possíveis desde o local de partida até ao local de destino. Este algoritmo usa um método de ``o melhor primeiro'', fazendo uma avaliação $f(n)$ dos nós, combinando o custo necessário para se atingir o nó $g(n)$ e o custo necessário para se alcançar o objetivo desse nó $h(n)$:
+
+\begin{equation}
+f(n) = g(n) + h(n)
+\end{equation}
+
+\subsection{Função do custo}
+No cálculo da função $g(n)$, é contabilizada a distância em quilómetros ($km$) já percorridos até ao nó em questão e o dinheiro gasto em euros (\euro) em combustível, alojamento e portagens. A combinação de estes dois custos, quilómetros e euros, são feitos com uma combinação linear, determinada por dois coeficientes definidos pelo utilizador: \texttt{distanceRatio} e \texttt{priceRatio}.
+
+\subsection{Funções heurísticas}
+Para garantir a admissibilidade da função heurística $h(n)$, calcula-se a distância em linha reta entre as coordenadas geográficas do nó em questão e o local de destino, apenas no caso em que todos os locais com interesse turístico ($POI$) já tenham sido visitados.
+A existirem $POI$ com passagem obrigatória antes de chegar ao destino, é usada a divisão em subproblemas com atribuição dos $POI$ como locais de destino intermédios, garantindo que se usa o processo atrás descrito. Na heurística avançada, a distância em linha reta entre as coordenadas geográficas é multiplicada por um fator (1.25), permitindo na maioria dos casos, uma menor geração de estados intermédios, perdendo no entanto, as qualidades de consistência e de admissibilidade.
+
+\begin{multline}
+h_1(n) = (distanceToGoal * distanceRatio)\  + \\ (neededLitersToGoal * priceRatio)
+\end{multline}
+
+\begin{multline}
+h_2(n) = (1.25 * distanceToGoal * distRatio)\  + \\
+(neededLitersToGoal * priceRatio)
+\end{multline}
+
+Nas duas funções heurísticas não são feitas estimativas acerca dos gastos futuros em \euro \  em hotéis nem em portagens, uma vez que tal não é possível sem comprometer, de forma significativa, a admissibilidade das heurísticas.
+
+\subsection{Explicação de datasets}
+Para guardar e ordenar os estados gerados, utiliza-se uma fila de prioridades, permitindo um rápido acesso ao primeiro elemento da fila (mais promissor). Os estados gerados e guardados na lista fechada, têm um acesso de tempo constante, uma vez que se armazenam num hashmap.
+
+\section{Desenvolvimento}
+\iffalse Ferramentas/APIs utilizadas, linguagens de programação, ambiente de desenvolvimento (SO, IDE, ...)
+Estrutura da aplicação, módulos, diagrama de classes...
+Detalhes relevantes da implementação
+\fi
+
+\subsection{Linguagens de programação, ferramentas e APIs}
+Quer o algoritmo quer a interface gráfica foram programadas em \texttt{Java} com auxílio do programa de ambiente de desenvolvimento \texttt{Eclipse}. Na interface gráfica usa-se o Java Swing nas janelas que permitem a configuração do itinerário e das variáveis do carro. Na visualização do mapa e da solução encontrada, recorre-se à biblioteca dinâmica de modelação e análise de grafos \texttt{GraphStream}.
+
+\subsection{Estrutura da aplicação}
+O projeto está dividido em três pastas: código fonte (src), documentos (doc) e recursos (res).
+Por forma a organizar o projeto, os ficheiros com o código fonte estão subdivididos em seis pacotes:
+
+\begin{labeling}{alligator}
+\item [\textbf{agents}] implementação do principal agente do problema: o automóvel.
+\item [\textbf{algorithms}]lógica da pesquisa da solução óptima do problema.
+\item [\textbf{graph}] representação do mapa do problema com estradas e cidades.
+\item [\textbf{gui}] interface gráfica que permite a interação simplificada do programa pelo utilizador.
+\item [\textbf{junit}] ficheiros que permitem efectuar testes unitários a funções importantes do programa.
+\item [\textbf{utils}] funções com utilidade na execução do programa mas que não se enquadram nos pacotes atrás descritos.
+\end{labeling}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.30]{UML-1.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.30]{UML-2.png}
+\end{figure}
+
+\subsection{Detalhes relevantes da implementação}
+No caso de serem selecionados pontos com interesse de visita (interpretados como de passagem obrigatória), são feitos vários cálculos de subproblemas nas pesquisas dos caminhos mais curtos. Para agilizar este processo, são criadas threads para cada uma destas pesquisas, permitindo o processamento em paralelo.
+
+\section{Experiências}
+\iffalse Objetivo de cada experiência
+Resultados \fi
+Para além dos testes unitários que testam os componentes importantes do programa, foram também feitas experiências quanto à performance do algoritmo de pesquisa de soluções utilizado, comparando o método do custo uniforme (UCS), com as duas versões do algoritmo $A^*$. Em seguida, mostram-se os efeitos da precisão da função heurística na performance da busca de soluções, comparando o número de nós gerado e o valor da ramificação efectiva dada uma certa profundidade da solução:\\
+
+\begin{center}
+\resizebox{11cm}{!} {
+\begin{tabular}{| c || c |}
+\hline
+Número de nós gerados & Factor effectivo de ramificação \\
+\hline
+\end{tabular}
+}
+
+\resizebox{11cm}{!} {
+\begin{tabular}{| c || c | c | c || c | c | c |}
+p & UCS & $A^*(h_1)$ & $A^*(h_2)$ & UCS & $A^*(h_1)$ & $A^*(h_2)$ \\ \hline
+2 & 21 & 16 & 9 & 4.11 & 3.53 & 2.54 \\ \hline
+4 & 105 & 53 & 35 & 2.89 & 2.37 & 2.10 \\ \hline
+8 & 169 & 134 & 97 & 1.70 & 1.64 & 1.57 \\ \hline
+10 & 240 & 126 & 91 & 1.56 & 1.45 & 1.39 \\ \hline
+12 & 309 & 171 & 130 & 1.47 & 1.38 & 1.34 \\ \hline
+14 & 328 & 206 & 147 & 1.38 & 1.33 & 1.29 \\ \hline
+16 & 344 & 270 & 172 & 1.32 & 1.29 & 1.25 \\ \hline
+... & ... & ... & ... & ... & ... & ... \\ \hline
+\end{tabular}
+}
+\end{center}
+
+\section{Conclusões}
+\iffalse Análise dos resultados das experiências levadas a cabo. \fi
+Após análise dos resultados, conseguimos concluir que o algoritmo do custo uniforme é bastante menos eficiente, uma vez que tem consistentemente um valor de ramificação efetiva superior às duas versões do algoritmo do $A^*$. Pela definição das duas funções heurísticas atrás referidas, conclui-se que para qualquer nó $n, h_2(n) \geq h_1(n)$. Pode dizer-se que $h_2$ domina o $h_1$. Nos testes acima apresentados, o domínio da função $h_2$ também se traduziu em melhor performance.
+
+\section{Melhoramentos}
+\iffalse Sugestões para trabalho futuro. \fi
+Sugere-se que em trabalhos futuros se altere a forma de gerar/importar dos dados de entrada. Devido à difícil importação de dados com o formato e detalhes adequados ao problema, aconselha-se que seja feita uma geração automática de um grande número de nós e arestas, permitindo aumentar o tamanho do grafo que representa o mapa e consequentemente a complexidade dos problemas.
+
+\section{Recursos}
+\iffalse Bibliografia Software Elementos do grupo: indicar percentagem aproximada de trabalho efectivo de cada elemento do grupo. \fi
+
+\subsection{Bibliografia}
+
+\begin{itemize}
+\item Stuart Russell, Peter Norvig
+\emph{Artifical Intelligence A Modern Approach},
+Pearson Education
+3rd edition,
+2010.
+\end{itemize}
+
+\subsection{Software}
+
+\begin{itemize}
+\item Recolha de coordenadas: \emph{Google Maps}, 2016\\
+
+\item Representação de grafos: http://graphstream-project.org/ \emph{GraphStream}, 2015
+\end{itemize}
+
+\subsection{Elementos do grupo}
+
+Percentagem aproximada do trabalho efetivo de cada um dos elementos do grupo:
+\begin{itemize}
+\item José Peixoto - 50\%
+
+\item Pedro Moura - 50\%
+\end{itemize}
+
+\section{Apêndice}
+\iffalse Manual do utilizador (sucinto). \fi
+
+\subsection{Manual do utilizador}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.45]{trip-planner.png}
+\caption{Janela principal que permite ao utilizador a configuração das definições da viagem}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.45]{trip-information.png}
+\caption{Janela com a informação acerca da viagem gerada}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.45]{graphstream.png}
+\caption{Janela que contém uma representação do mapa}
+\end{figure}
+
+\end{document}
